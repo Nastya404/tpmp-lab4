@@ -1,0 +1,20 @@
+# Скомпилированные файлы
+build/*.o
+bin/autopark
+bin/autopark.exe
+bin/autopark.db
+
+# SQLite amalgamation
+src/sqlite3.c
+includes/sqlite3.h
+
+# Файлы IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Системные файлы
+.DS_Store
+Thumbs.db
