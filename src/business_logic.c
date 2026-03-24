@@ -1,52 +1,32 @@
 #include <stdio.h>
-#include <string.h>
 #include "business_logic.h"
 #include "crud.h"
-#include "models.h"   
 
-int check_cargo_limit(const char* car_number, float mass) {
-    Car car;
-    
-    if (get_car_by_number(car_number, &car) == STATUS_OK) { 
-        if (mass > car.capacity) {
-            return CARGO_LIMIT_EXCEEDED; 
-        }
-        return STATUS_OK; 
+int check_cargo_limit(sqlite3 *db, const char *car_number, double mass) {
+    sqlite3_stmt *stmt;
+    double capacity = 0;
+    const char *sql = "SELECT capacity FROM CARS WHERE number = ?;";
+    sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    sqlite3_bind_text(stmt, 1, car_number, -1, SQLITE_STATIC);
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        capacity = sqlite3_column_double(stmt, 0);
     }
-    
-    return NOT_FOUND;
+    sqlite3_finalize(stmt);
+    return (mass <= capacity) ? 0 : 1;
 }
 
-int process_new_order(Order order) {
-    int limit_check = check_cargo_limit(order.car_number, order.cargo_mass);
-
-    if (limit_check == CARGO_LIMIT_EXCEEDED) {
-        printf("Ошибка: Вес превышен!\n"); 
-        return CARGO_LIMIT_EXCEEDED;
-    } 
-    else if (limit_check == NOT_FOUND) {
-        printf("Ошибка: Машина с номером %s не найдена!\n", order.car_number);
-        return NOT_FOUND;
+int process_new_order(sqlite3 *db, Order order) {
+    if (check_cargo_limit(db, order.car_number, order.cargo_mass) != 0) {
+        return 1; // Превышен лимит
     }
-
-    int db_status = add_order(order); 
-    
-    if (db_status == STATUS_OK) {
-        printf("Заказ добавлен успешно.\n"); 
-        return STATUS_OK;
-    } else {
-        printf("Ошибка базы данных при сохранении заказа.\n");
-        return DB_ERROR;
-    }
+    return add_order(db, order);
 }
 
-int calculate_salaries_to_db(const char* start_date, const char* end_date) {
-    int status = execute_salary_calculation_all(start_date, end_date); 
-    
-    if (status == STATUS_OK) {
-        printf("Зарплаты за период %s - %s успешно рассчитаны и занесены в БД.\n", start_date, end_date);
-    } else {
-        printf("Ошибка при расчете зарплат в БД.\n");
-    }
-    return status;
+int calculate_salaries_to_db(sqlite3 *db, const char *period) {
+    // В расчете используется один аргумент period (например "2026-03") как на диаграмме
+    char sql[512];
+    sprintf(sql, "INSERT INTO SALARY_RECORDS (start_date, end_date, total_salary, calculated_at, driver_id) "
+                 "SELECT '%s-01', '%s-31', SUM(cost * 0.2), datetime('now'), driver_id FROM ORDERS "
+                 "WHERE date LIKE '%s%%' GROUP BY driver_id;", period, period, period);
+    return sqlite3_exec(db, sql, NULL, NULL, NULL);
 }
