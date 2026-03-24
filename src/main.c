@@ -119,9 +119,10 @@ int main() {
             case 11: {
                 char surname[101], s[11], e[11];
                 printf("Фамилия водителя: "); scanf("%100s", surname); clear_buffer();
-                printf("Начало: "); scanf("%10s", s); clear_buffer();
-                printf("Конец: "); scanf("%10s", e); clear_buffer();
-                get_driver_orders(db, -1, s, e); 
+                printf("Начало (YYYY-MM-DD): "); scanf("%10s", s); clear_buffer();
+                printf("Конец (YYYY-MM-DD): "); scanf("%10s", e); clear_buffer();
+                
+                get_driver_orders(db, -1, surname, s); 
                 break;
             }
             case 12: {

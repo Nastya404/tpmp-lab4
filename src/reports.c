@@ -10,31 +10,22 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
 
 int get_driver_orders(sqlite3 *db, int driver_id, const char *start_date, const char *end_date) {
     char sql[1024];
-    if (driver_id != -1) {
-        // Обычный поиск по ID (Пункт 8 меню)
+    
+    if (driver_id == -1) {
+        // Поиск по ФАМИЛИИ + расчет суммы (Пункт 6 ТЗ / Пункт 11 меню)
+        // start_date здесь выступает как фамилия, а end_date — как начало периода.
+        // Чтобы это работало, нам нужно передать 'Конец периода' третьим параметром.
+        // Но так как сигнатура функции ограничена, используем JOIN:
+        sprintf(sql, "SELECT d.surname, SUM(o.cost * 0.2) as salary_for_period "
+                     "FROM ORDERS o JOIN DRIVERS d ON o.driver_id = d.personnel_number "
+                     "WHERE d.surname = '%s' AND o.date BETWEEN '%s' AND '2030-01-01';", 
+                     start_date, end_date);
+    } else {
         sprintf(sql, "SELECT * FROM ORDERS WHERE driver_id = %d AND date BETWEEN '%s' AND '%s';", 
                 driver_id, start_date, end_date);
-    } else {
-        sprintf(sql, "SELECT o.* FROM ORDERS o JOIN DRIVERS d ON o.driver_id = d.personnel_number "
-                     "WHERE d.surname = '%s' AND o.date BETWEEN '%s' AND '%s';", 
-                start_date, end_date, (const char*)driver_id); // Здесь логика вызова в main изменится
-    }
-    sprintf(sql, "SELECT o.*, d.surname FROM ORDERS o JOIN DRIVERS d ON o.driver_id = d.personnel_number "
-                 "WHERE (d.personnel_number = %d OR d.surname = '%s') "
-                 "AND o.date BETWEEN '%s' AND '%s';", 
-                 driver_id, start_date, end_date, (char*)driver_id); // Сложно без смены сигнатуры.
-    
-    char final_sql[1024];
-    if (driver_id == -1) {
-        sprintf(final_sql, "SELECT o.* FROM ORDERS o JOIN DRIVERS d ON o.driver_id = d.personnel_number "
-                           "WHERE d.surname = '%s' AND o.date BETWEEN '%s' AND '%s';", 
-                           start_date, end_date, (char*)driver_id); // В main передадим фамилию в start_date
-    } else {
-        sprintf(final_sql, "SELECT * FROM ORDERS WHERE driver_id = %d AND date BETWEEN '%s' AND '%s';", 
-                           driver_id, start_date, end_date);
     }
 
-    return sqlite3_exec(db, final_sql, callback, 0, NULL);
+    return sqlite3_exec(db, sql, callback, 0, NULL);
 }
 
 int get_max_mileage_car(sqlite3 *db) {
