@@ -23,8 +23,8 @@ int main() {
     sqlite3 *db;
     
     // 1. Подключение и инициализация из SQL-файла
-    if (db_connect("autopark.db", &db) != 0) return 1;
-    db_init_from_file(db, "schema.sql");
+    if (db_connect("data/autopark.db", &db) != 0) return 1;
+	db_init_from_file(db, "data/autopark_create.sql");
 
     int choice;
     while (1) {

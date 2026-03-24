@@ -6,6 +6,7 @@ LDFLAGS = -lsqlite3
 # Папки
 OBJ_DIR = obj
 BIN_DIR = bin
+DATA_DIR = data
 
 # Имя исполняемого файла
 TARGET = $(BIN_DIR)/autopark
@@ -32,6 +33,9 @@ $(OBJ_DIR):
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
+
+$(DATA_DIR):
+	mkdir -p $(DATA_DIR)
 
 # Очистка
 clean:
