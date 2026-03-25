@@ -1,0 +1,5 @@
+if(EXISTS "/home/polinwq_534/macOS отчеты/tpmp-lab4/t/tests/runTests[1]_tests.cmake")
+  include("/home/polinwq_534/macOS отчеты/tpmp-lab4/t/tests/runTests[1]_tests.cmake")
+else()
+  add_test(runTests_NOT_BUILT runTests_NOT_BUILT)
+endif()

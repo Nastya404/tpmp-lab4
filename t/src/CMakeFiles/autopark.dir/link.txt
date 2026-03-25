@@ -1,0 +1,2 @@
+/usr/bin/ar qc libautopark.a CMakeFiles/autopark.dir/db_core.c.o CMakeFiles/autopark.dir/crud.c.o CMakeFiles/autopark.dir/business_logic.c.o CMakeFiles/autopark.dir/reports.c.o
+/usr/bin/ranlib libautopark.a

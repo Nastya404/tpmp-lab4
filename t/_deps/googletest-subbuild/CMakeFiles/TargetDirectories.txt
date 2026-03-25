@@ -1,0 +1,3 @@
+/home/polinwq_534/macOS отчеты/tpmp-lab4/t/_deps/googletest-subbuild/CMakeFiles/googletest-populate.dir
+/home/polinwq_534/macOS отчеты/tpmp-lab4/t/_deps/googletest-subbuild/CMakeFiles/edit_cache.dir
+/home/polinwq_534/macOS отчеты/tpmp-lab4/t/_deps/googletest-subbuild/CMakeFiles/rebuild_cache.dir

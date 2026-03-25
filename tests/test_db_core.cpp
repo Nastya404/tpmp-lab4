@@ -6,7 +6,7 @@ extern "C" {
 
 TEST(DBCoreTest, ConnectSuccess) {
     sqlite3 *db;
-    int rc = db_connect("test.db", &db);
+    int rc = db_connect(":memory:", &db);
     EXPECT_EQ(rc, 0);
     db_close(db);
 }

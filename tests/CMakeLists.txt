@@ -12,7 +12,6 @@ enable_testing()
 
 # Файлы тестов
 set(TEST_SOURCES
-    test_main.cpp
     test_db_core.cpp
     test_crud.cpp
     test_business_logic.cpp

@@ -1,6 +1,5 @@
 # Исходники
 set(SRC_FILES
-    main.c        # Если main нужен
     db_core.c
     crud.c
     business_logic.c

@@ -10,11 +10,12 @@ protected:
     sqlite3 *db;
 
     void SetUp() override {
-        db_connect("test.db", &db);
+        db_connect(":memory:", &db);
 
-        sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS DRIVERS (personnel_number INT, surname TEXT);", NULL, NULL, NULL);
-        sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS ORDERS (date TEXT, driver_id INT, car_number TEXT, cargo_mass REAL, cost REAL, distance INT);", NULL, NULL, NULL);
-        sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS CARS (number TEXT, brand TEXT, initial_mileage INT, current_mileage INT, capacity INT);", NULL, NULL, NULL);
+        sqlite3_exec(db, "CREATE TABLE DRIVERS (personnel_number INTEGER PRIMARY KEY, surname TEXT, category TEXT, experience INT, address TEXT, birth_year INT);", NULL, NULL, NULL);
+        sqlite3_exec(db, "CREATE TABLE CARS (number TEXT PRIMARY KEY, brand TEXT, initial_mileage INT, current_mileage INT, capacity INT);", NULL, NULL, NULL);
+        sqlite3_exec(db, "CREATE TABLE ORDERS (order_id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, driver_id INT, car_number TEXT, distance INT, cargo_mass REAL, cost REAL);", NULL, NULL, NULL);
+        sqlite3_exec(db, "INSERT INTO DRIVERS VALUES (1, 'Ivanov', 'C', 5, 'Street 1', 1990);", NULL, NULL, NULL);
     }
 
     void TearDown() override {
