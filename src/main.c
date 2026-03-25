@@ -80,10 +80,10 @@ int main() {
                 break;
             }
             case 4: {
-                char period[20];
-                printf("Введите период для расчета (напр. 2026-03): ");
-                scanf("%19s", period); clear_buffer();
-                calculate_salaries_to_db(db, period);
+                char start_date[11], end_date[11];
+                printf("Начало (YYYY-MM-DD): "); scanf("%10s", start_date); clear_buffer();
+                printf("Конец (YYYY-MM-DD): "); scanf("%10s", end_date); clear_buffer();
+                calculate_salaries_to_db(db, start_date, end_date);
                 break;
             }
             case 5: {
@@ -122,7 +122,7 @@ int main() {
                 printf("Начало (YYYY-MM-DD): "); scanf("%10s", s); clear_buffer();
                 printf("Конец (YYYY-MM-DD): "); scanf("%10s", e); clear_buffer();
                 
-                get_driver_orders(db, -1, surname, s); 
+                get_driver_salary_info(db, surname, s, e);
                 break;
             }
             case 12: {
