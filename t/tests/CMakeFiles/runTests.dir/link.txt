@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/runTests.dir/test_db_core.cpp.o CMakeFiles/runTests.dir/test_crud.cpp.o CMakeFiles/runTests.dir/test_business_logic.cpp.o CMakeFiles/runTests.dir/test_reports.cpp.o -o runTests  ../src/libautopark.a ../lib/libgtest_main.a -lpthread /usr/lib/x86_64-linux-gnu/libsqlite3.so ../lib/libgtest.a 
