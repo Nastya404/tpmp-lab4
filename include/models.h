@@ -1,27 +1,32 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-typedef struct
-{
+typedef struct {
     char number[21];
     char brand[101];
     int initial_mileage;
-    int current_mileage;
+    int current_mileage; 
     int capacity;
 } Car;
 
-typedef struct
-{
-    int id;
+typedef struct {
+    int personnel_number;
     char surname[101];
-    char category[4];
+    char category[10];
     int experience;
     char address[201];
     int birth_year;
 } Driver;
 
-typedef struct
-{
+typedef struct {
+    int user_id;
+    char login[51];
+    char password_hash[256];
+    char role[21];
+    int personnel_number;
+} User;
+
+typedef struct {
     int order_id;
     char date[11];
     int driver_id;
@@ -31,8 +36,7 @@ typedef struct
     double cost;
 } Order;
 
-typedef struct
-{
+typedef struct {
     int record_id;
     char start_date[11];
     char end_date[11];
@@ -41,4 +45,4 @@ typedef struct
     int driver_id;
 } SalaryRecord;
 
-#endif /* MODELS_H */
+#endif 
