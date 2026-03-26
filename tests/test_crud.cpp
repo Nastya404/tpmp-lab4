@@ -182,8 +182,9 @@ TEST_F(CrudTest, DeleteOrder) {
     add_order(db, o);
 
     EXPECT_EQ(delete_order(db, 10), 0);
-    
-    
+  
+}
+
     // --- Тесты авторизации ---
 
 TEST_F(CrudTest, AuthenticateUserSuccess) {
@@ -222,5 +223,4 @@ TEST_F(CrudTest, AuthenticateUserNotFound) {
     int result = authenticate_user(db, "non_existent", "any", &out_user);
     
     EXPECT_NE(result, 0);
-}
 }
