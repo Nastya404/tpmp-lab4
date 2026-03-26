@@ -56,12 +56,18 @@ TEST_F(BusinessTest, ProcessOrderFail) {
 }
 
 TEST_F(BusinessTest, CalculateSalaries) {
-
    sqlite3_exec(db, 
    "CREATE TABLE IF NOT EXISTS SALARY_RECORDS "
    "(start_date TEXT, end_date TEXT, total_salary REAL, "
    "calculated_at TEXT, driver_id INT);", 
     NULL, NULL, NULL);
+
+   // Добавь это:
+   sqlite3_exec(db,
+   "CREATE TABLE IF NOT EXISTS DRIVERS "
+   "(personnel_number INT PRIMARY KEY, surname TEXT, category TEXT, "
+   "experience INT, address TEXT, birth_year INT);",
+   NULL, NULL, NULL);
 
    sqlite3_exec(db,
    "INSERT INTO DRIVERS (personnel_number, surname, category, "
@@ -69,7 +75,6 @@ TEST_F(BusinessTest, CalculateSalaries) {
    "VALUES (1, 'Ivanov', 'B', 5, 'Minsk', 1990);",
    NULL, NULL, NULL);
   
-
    sqlite3_exec(db,
    "INSERT INTO ORDERS (date, driver_id, car_number, distance, "
    "cargo_mass, cost) VALUES ('2024-01-15', 1, 'A1', 100, 200, 500);",
