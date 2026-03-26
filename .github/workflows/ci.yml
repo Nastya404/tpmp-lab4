@@ -41,12 +41,17 @@ jobs:
           '*/tests/*' '*/_deps/*' --output-file coverage_filtered.info \
           --ignore-errors inconsistent,unsupported,format,unused
         genhtml coverage_filtered.info --output-directory coverage_report \
-          --ignore-errors inconsistent,unsupported,format,unused
+          --ignore-errors inconsistent,unsupported,format,unused   
 
     - name: Upload pages artifact
       uses: actions/upload-pages-artifact@v3
       with:
         path: build/coverage_report
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   deploy:
     needs: test
