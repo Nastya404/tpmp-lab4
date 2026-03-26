@@ -54,3 +54,26 @@ TEST_F(BusinessTest, ProcessOrderFail) {
     // Ожидаем ошибку (1), так как вес (1000) превышает грузоподъемность машины A1 (500)
     EXPECT_EQ(process_new_order(db, o), 1);
 }
+
+TEST_F(BusinessTest, CalculateSalaries) {
+
+   sqlite3_exec(db, 
+   "CREATE TABLE IF NOT EXISTS SALARY_RECORDS "
+   "(start_date TEXT, end_date TEXT, total_salary REAL, "
+   "calculated_at TEXT, driver_id INT);", 
+    NULL, NULL, NULL);
+
+   sqlite3_exec(db,
+   "INSERT INTO DRIVERS (personnel_number, surname, category, "
+   "experience, address, birth_year) "
+   "VALUES (1, 'Ivanov', 'B', 5, 'Minsk', 1990);",
+   NULL, NULL, NULL);
+  
+
+   sqlite3_exec(db,
+   "INSERT INTO ORDERS (date, driver_id, car_number, distance, "
+   "cargo_mass, cost) VALUES ('2024-01-15', 1, 'A1', 100, 200, 500);",
+   NULL, NULL, NULL);
+
+    EXPECT_EQ(calculate_salaries_to_db(db, "2024-01-01", "2024-12-31"), 0);
+}
