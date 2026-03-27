@@ -20,5 +20,6 @@ int delete_driver(sqlite3 *db, int id);
 
 // Доп. метод для поиска (нужен для BusinessLogic согласно Sequence Diagram)
 int get_car_by_number(sqlite3 *db, const char *number, Car *car);
+int authenticate_user(sqlite3 *db, const char *login, const char *password, User *out_user);
 
 #endif

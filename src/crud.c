@@ -138,4 +138,31 @@ int delete_driver(sqlite3 *db, int personnel_number) {
     int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     return (rc == SQLITE_DONE) ? 0 : -1;
+    
+}
+
+// --- Авторизация ---
+int authenticate_user(sqlite3 *db, const char *login, const char *password, User *out_user) {
+    sqlite3_stmt *stmt;
+    // Сравниваем логин и хэш (в рамках лабы пароль передается текстом прямо в password_hash)
+    const char *sql = "SELECT user_id, login, role, personnel_number FROM AUTOPARK_USERS WHERE login = ? AND password_hash = ?;";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) return -1;
+    
+    sqlite3_bind_text(stmt, 1, login, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, password, -1, SQLITE_STATIC);
+
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        out_user->user_id = sqlite3_column_int(stmt, 0);
+        strcpy(out_user->login, (const char *)sqlite3_column_text(stmt, 1));
+        strcpy(out_user->role, (const char *)sqlite3_column_text(stmt, 2));
+        // Обработка NULL для personnel_number (у админов его может не быть)
+        out_user->personnel_number = sqlite3_column_type(stmt, 3) == SQLITE_NULL ? 0 : sqlite3_column_int(stmt, 3);
+        sqlite3_finalize(stmt);
+        return 0; // Успех
+    }
+    
+    sqlite3_finalize(stmt);
+    return -1; // Пользователь не найден или пароль неверный
 }

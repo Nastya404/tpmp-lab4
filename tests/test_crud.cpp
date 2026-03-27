@@ -17,6 +17,13 @@ protected:
         sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS DRIVERS (personnel_number INT PRIMARY KEY, surname TEXT, category TEXT, experience INT, address TEXT, birth_year INT);", NULL, NULL, NULL);
         sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS CARS (number TEXT PRIMARY KEY, brand TEXT, initial_mileage INT, current_mileage INT, capacity INT);", NULL, NULL, NULL);
         sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS ORDERS (order_id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, driver_id INT, car_number TEXT, distance INT, cargo_mass REAL, cost REAL);", NULL, NULL, NULL);
+        
+        sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS AUTOPARK_USERS ("
+                     "user_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                     "login TEXT UNIQUE, "
+                     "password_hash TEXT, "
+                     "role TEXT, "
+                     "personnel_number INT);", NULL, NULL, NULL);
     }
 
     void TearDown() override {
@@ -175,4 +182,45 @@ TEST_F(CrudTest, DeleteOrder) {
     add_order(db, o);
 
     EXPECT_EQ(delete_order(db, 10), 0);
+  
+}
+
+    // --- Тесты авторизации ---
+
+TEST_F(CrudTest, AuthenticateUserSuccess) {
+    // 1. Подготовка: добавляем тестового пользователя в БД напрямую
+    // В реальной жизни тут был бы хеш, но для лабы обычно используем простой текст
+    sqlite3_exec(db, "INSERT INTO AUTOPARK_USERS (login, password_hash, role, personnel_number) "
+                     "VALUES ('admin', '1234', 'ADMIN', 1);", NULL, NULL, NULL);
+
+    User out_user = {0};
+    
+    // 2. Проверка успешного входа
+    int result = authenticate_user(db, "admin", "1234", &out_user);
+    
+    EXPECT_EQ(result, 0);
+    EXPECT_STREQ(out_user.login, "admin");
+    EXPECT_STREQ(out_user.role, "ADMIN");
+    EXPECT_EQ(out_user.personnel_number, 1);
+}
+
+TEST_F(CrudTest, AuthenticateUserWrongPassword) {
+    sqlite3_exec(db, "INSERT INTO AUTOPARK_USERS (login, password_hash, role) "
+                     "VALUES ('driver1', 'pass', 'DRIVER');", NULL, NULL, NULL);
+
+    User out_user = {0};
+    
+    // Попытка входа с неверным паролем
+    int result = authenticate_user(db, "driver1", "wrong_pass", &out_user);
+    
+    EXPECT_NE(result, 0); // Должно вернуть ошибку (не 0)
+}
+
+TEST_F(CrudTest, AuthenticateUserNotFound) {
+    User out_user = {0};
+    
+    // Попытка входа несуществующего пользователя
+    int result = authenticate_user(db, "non_existent", "any", &out_user);
+    
+    EXPECT_NE(result, 0);
 }
