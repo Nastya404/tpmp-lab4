@@ -16,6 +16,7 @@ set(TEST_SOURCES
     test_crud.cpp
     test_business_logic.cpp
     test_reports.cpp
+    test_branch_coverage.cpp 
 )
 
 # Создаём исполняемый файл тестов
