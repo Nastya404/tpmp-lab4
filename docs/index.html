@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Автопарк — Wiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:          #0d1117;
+      --surface:     #161b22;
+      --surface2:    #21262d;
+      --border:      #30363d;
+      --accent:      #238636;
+      --accent2:     #2ea043;
+      --blue:        #388bfd;
+      --blue-dim:    #1f6feb;
+      --text:        #e6edf3;
+      --text-muted:  #8b949e;
+      --text-dim:    #6e7681;
+      --code-bg:     #161b22;
+      --orange:      #f0883e;
+      --sidebar-w:   264px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14.5px;
+      line-height: 1.75;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 100;
+      transition: transform .2s ease;
+    }
+
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-logo .logo-mark {
+      width: 34px; height: 34px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--blue-dim));
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-logo .logo-mark svg { width: 18px; height: 18px; fill: #fff; }
+    .sidebar-logo .name { font-weight: 700; font-size: 13.5px; color: var(--text); line-height: 1.3; }
+    .sidebar-logo .sub  { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+
+    .sidebar-section { padding: 8px 0 2px; }
+    .sidebar-section-title {
+      font-size: 10.5px; font-weight: 600; letter-spacing: .09em;
+      text-transform: uppercase; color: var(--text-dim);
+      padding: 6px 18px 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 18px; cursor: pointer;
+      border-left: 2px solid transparent;
+      color: var(--text-muted); font-size: 13px;
+      transition: background .12s, color .12s, border-color .12s;
+      text-decoration: none;
+    }
+    .nav-item:hover  { background: var(--surface2); color: var(--text); border-left-color: var(--border); }
+    .nav-item.active { background: var(--surface2); color: var(--text); border-left-color: var(--accent); font-weight: 600; }
+
+    .nav-item .nav-icon {
+      width: 16px; height: 16px; flex-shrink: 0;
+      opacity: .65;
+    }
+    .nav-item.active .nav-icon,
+    .nav-item:hover  .nav-icon { opacity: 1; }
+
+    .sidebar-coverage {
+      margin: 12px 14px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px;
+    }
+    .cov-title    { font-size: 10.5px; color: var(--text-dim); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+    .cov-row      { margin-bottom: 7px; }
+    .cov-row-label{ display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-bottom: 3px; }
+    .cov-bar      { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .cov-fill     { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s ease; }
+    .cov-fill.blue { background: linear-gradient(90deg, var(--blue-dim), var(--blue)); }
+    .cov-fill.orange { background: linear-gradient(90deg, #b35a00, var(--orange)); }
+    .cov-link     { display: block; margin-top: 10px; font-size: 11px; color: var(--blue); text-decoration: none; text-align: center; font-family: 'IBM Plex Mono', monospace; }
+    .cov-link:hover { text-decoration: underline; }
+
+    /* ── MAIN ── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 50px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+    .breadcrumb .sep { color: var(--text-dim); }
+    .breadcrumb .current { color: var(--text); }
+    .topbar-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-topbar {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 6px; font-size: 12px;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text-muted); cursor: pointer; text-decoration: none;
+      transition: color .15s, border-color .15s; font-family: inherit;
+    }
+    .btn-topbar:hover { color: var(--text); border-color: var(--text-dim); }
+    .btn-topbar svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+
+    .hamburger { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; }
+    .hamburger svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* ── CONTENT ── */
+    #content {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 36px 40px 80px;
+      width: 100%;
+    }
+
+    .page { display: none; animation: fadeIn .18s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+    /* PAGE HEADER */
+    .page-header { margin-bottom: 26px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .page-title  { font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+    .page-meta   { font-size: 12px; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .tag {
+      display: inline-flex; align-items: center;
+      background: #1f6feb18; color: var(--blue);
+      border: 1px solid #1f6feb30; border-radius: 20px;
+      padding: 2px 10px; font-size: 11px; font-weight: 500;
+    }
+
+    /* TYPOGRAPHY */
+    h1 { font-size: 20px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+    h2 { font-size: 16px; font-weight: 600; margin: 22px 0 10px; color: var(--text); }
+    h3 { font-size: 13.5px; font-weight: 600; margin: 16px 0 8px; color: var(--blue); text-transform: uppercase; letter-spacing: .06em; }
+    p  { margin-bottom: 12px; color: var(--text); }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 5px; color: var(--text); }
+    a  { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: var(--text); font-weight: 600; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+    code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--orange);
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code { background: none; border: none; padding: 0; color: var(--text-muted); font-size: 12.5px; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th    { background: var(--surface2); color: var(--text); font-weight: 600; text-align: left; padding: 9px 14px; border: 1px solid var(--border); font-size: 12.5px; }
+    td    { padding: 8px 14px; border: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+    tr:hover td { background: var(--surface2); color: var(--text); }
+
+    /* ALERTS */
+    .alert { border-radius: 6px; padding: 12px 16px; margin: 14px 0; border-left: 3px solid; }
+    .alert-info    { background: #1f6feb12; border-color: var(--blue-dim); }
+    .alert-success { background: #23863612; border-color: var(--accent); }
+    .alert-warn    { background: #d2992212; border-color: #d29922; }
+    .alert p { margin: 0; font-size: 13px; }
+
+    /* SCENARIO CARD */
+    .scenario {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 16px 0;
+    }
+    .scenario-title {
+      font-size: 13.5px; font-weight: 700; margin-bottom: 12px;
+      color: var(--text); padding-bottom: 8px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .scenario-badge {
+      font-size: 10px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--accent2);
+      background: #23863618; border: 1px solid #23863630;
+      border-radius: 4px; padding: 1px 7px;
+    }
+    .scenario .field { display: flex; gap: 12px; margin-bottom: 7px; font-size: 13px; }
+    .scenario .field-key { color: var(--text-dim); min-width: 140px; flex-shrink: 0; font-weight: 500; }
+    .scenario .field-val { color: var(--text-muted); }
+
+    /* DIAGRAM PLACEHOLDER */
+    .diagram-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px 24px;
+      margin: 14px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .diagram-box .diagram-icon {
+      width: 36px; height: 36px; border-radius: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .diagram-box .diagram-icon svg { width: 18px; height: 18px; fill: var(--blue); }
+    .diagram-box .diagram-body {}
+    .diagram-box .diagram-label { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .diagram-box .diagram-desc  { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; }
+    .diagram-box a { font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+
+    /* HOME CARDS */
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: border-color .15s, transform .15s;
+      text-decoration: none;
+      display: block;
+    }
+    .card:hover { border-color: var(--blue); transform: translateY(-2px); }
+    .card-label  { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; }
+    .card-title  { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .card-desc   { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* STAT CHIPS */
+    .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0; }
+    .stat-chip {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 16px;
+    }
+    .stat-chip .s-val { font-size: 20px; font-weight: 700; color: var(--text); font-family: 'IBM Plex Mono', monospace; }
+    .stat-chip .s-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: none; box-shadow: 4px 0 24px #000a; }
+      #main { margin-left: 0; }
+      .hamburger { display: block; }
+      #content { padding: 20px 18px 60px; }
+      .card-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 0 16px; }
+      .diagram-box { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+    </div>
+    <div>
+      <div class="name">Автопарк</div>
+      <div class="sub">ТПМП · Группа 11</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Главная</div>
+    <a class="nav-item active" data-page="home" onclick="navigate('home',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Проектирование</div>
+    <a class="nav-item" data-page="glossary" onclick="navigate('glossary',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H8v-2h8v2zm0-4H8v-2h8v2zm0-4H8V6h8v2z"/></svg>
+      Глоссарий
+    </a>
+    <a class="nav-item" data-page="functional" onclick="navigate('functional',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Функциональные требования
+    </a>
+    <a class="nav-item" data-page="supplementary" onclick="navigate('supplementary',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+      Доп. спецификация
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Техническая реализация</div>
+    <a class="nav-item" data-page="spec" onclick="navigate('spec',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+      Спецификация проекта
+    </a>
+    <a class="nav-item" data-page="db" onclick="navigate('db',this)">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.59 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm6 14c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17zm0-5c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23C7.61 10.55 9.72 11 12 11s4.39-.45 6-1.23V12zm-6-3C8.13 9 6 7.5 6 7s2.13-2 6-2 6 1.5 6 2-2.13 2-6 2z"/></svg>
+      Схема базы данных
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Студенты</div>
+    <a class="nav-item" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Bohush-Palina" target="_blank">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Богуш Полина
+    </a>
+    <a class="nav-item" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Yarmolik-Anastasiya" target="_blank">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Ярмолик Анастасия
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Ресурсы</div>
+    <a class="nav-item" href="https://github.com/Nastya404/tpmp-lab4" target="_blank">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      Репозиторий кода
+    </a>
+    <a class="nav-item" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki" target="_blank">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h4l3 3 3-3h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 12 12 12s-3.5-1.57-3.5-3.5S10.07 5 12 5zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 14.82 9.64 14 12 14s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V18z"/></svg>
+      GitHub Wiki
+    </a>
+  </div>
+
+  <div class="sidebar-coverage">
+    <div class="cov-title">Покрытие тестами</div>
+    <div class="cov-row">
+      <div class="cov-row-label"><span>Строки</span><span id="cov-lines-pct">—</span></div>
+      <div class="cov-bar"><div class="cov-fill" id="cov-lines-fill" style="width:0%"></div></div>
+    </div>
+    <div class="cov-row">
+      <div class="cov-row-label"><span>Функции</span><span id="cov-funcs-pct">—</span></div>
+      <div class="cov-bar"><div class="cov-fill blue" id="cov-funcs-fill" style="width:0%"></div></div>
+    </div>
+    <div class="cov-row">
+      <div class="cov-row-label"><span>Ветви</span><span id="cov-branches-pct">—</span></div>
+      <div class="cov-bar"><div class="cov-fill orange" id="cov-branches-fill" style="width:0%"></div></div>
+    </div>
+    <a class="cov-link" href="coverage/index.html">Открыть полный отчёт &rarr;</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="hamburger" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+      <div class="breadcrumb">
+        <span>tpmp-gr11a-lab4-claude</span>
+        <span class="sep">/</span>
+        <span id="breadcrumb-current">Home</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-topbar" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+        GitHub
+      </a>
+      <a class="btn-topbar" href="coverage/index.html">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        Coverage
+      </a>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ══ HOME ══ -->
+    <div class="page active" id="page-home">
+      <div class="page-header">
+        <div class="page-title">Система управления «Автопарк»</div>
+        <div class="page-meta">
+          <span class="tag">ТПМП 2026</span>
+          <span class="tag">Группа 11А</span>
+          <span class="tag">Вариант 1</span>
+          <span style="color:var(--text-dim)">Обновлено: 26 марта 2026</span>
+        </div>
+      </div>
+
+      <p>Wiki-документация проекта по разработке информационной системы для управления грузовым автопарком. Проект реализован в рамках учебного курса <strong>«Технологии программирования мобильных приложений»</strong> (ТПМП).</p>
+
+      <div class="stat-row">
+        <div class="stat-chip"><div class="s-val">C</div><div class="s-lbl">Язык реализации</div></div>
+        <div class="stat-chip"><div class="s-val">SQLite3</div><div class="s-lbl">База данных</div></div>
+        <div class="stat-chip"><div class="s-val">GTest</div><div class="s-lbl">Фреймворк тестов</div></div>
+        <div class="stat-chip"><div class="s-val">lcov</div><div class="s-lbl">Покрытие кода</div></div>
+      </div>
+
+      <h2>Описание задачи</h2>
+      <p>Информационная система предназначена для автоматизации работы автопарка. Она позволяет вести учёт транспортных средств, анкетных данных водителей и истории выполненных заказов. Основные функции:</p>
+      <ul>
+        <li>Контроль грузоподъёмности при назначении заказов.</li>
+        <li>Расчёт заработной платы водителей (20% от стоимости поездки).</li>
+        <li>Генерация статистических отчётов по пробегу и эффективности персонала.</li>
+        <li>Ролевая модель доступа: диспетчер (ADMIN) и водитель (DRIVER).</li>
+      </ul>
+
+      <hr>
+      <h3>Проектирование и требования</h3>
+      <div class="card-grid">
+        <div class="card" onclick="navigate('glossary')">
+          <div class="card-label">Терминология</div>
+          <div class="card-title">Глоссарий</div>
+          <div class="card-desc">Ключевые понятия предметной области системы.</div>
+        </div>
+        <div class="card" onclick="navigate('functional')">
+          <div class="card-label">Use Case</div>
+          <div class="card-title">Функциональные требования</div>
+          <div class="card-desc">Описание возможностей системы и сценарии Use Case.</div>
+        </div>
+        <div class="card" onclick="navigate('supplementary')">
+          <div class="card-label">Нефункциональные требования</div>
+          <div class="card-title">Дополнительная спецификация</div>
+          <div class="card-desc">Надёжность, производительность, удобство использования.</div>
+        </div>
+      </div>
+
+      <h3>Техническая реализация</h3>
+      <div class="card-grid">
+        <div class="card" onclick="navigate('spec')">
+          <div class="card-label">UML-диаграммы</div>
+          <div class="card-title">Спецификация проекта</div>
+          <div class="card-desc">Диаграммы классов, последовательности, компонентов и развёртывания.</div>
+        </div>
+        <div class="card" onclick="navigate('db')">
+          <div class="card-label">SQLite</div>
+          <div class="card-title">Схема базы данных</div>
+          <div class="card-desc">Архитектура таблиц, ER-диаграмма и SQL-скрипт создания схемы.</div>
+        </div>
+      </div>
+
+      <h3>Участники проекта</h3>
+      <div class="card-grid">
+        <a class="card" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Bohush-Palina" target="_blank">
+          <div class="card-label">Студент</div>
+          <div class="card-title">Богуш Полина</div>
+          <div class="card-desc">Персональная страница с деталями реализации.</div>
+        </a>
+        <a class="card" href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Yarmolik-Anastasiya" target="_blank">
+          <div class="card-label">Студент</div>
+          <div class="card-title">Ярмолик Анастасия</div>
+          <div class="card-desc">Персональная страница с деталями реализации.</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ══ GLOSSARY ══ -->
+    <div class="page" id="page-glossary">
+      <div class="page-header">
+        <div class="page-title">Глоссарий предметной области</div>
+        <div class="page-meta"><span class="tag">Проектирование</span><span style="color:var(--text-dim)">Редактор: Bogush Palina</span></div>
+      </div>
+
+      <p>Термины и определения, используемые в документации информационной системы «Автопарк».</p>
+
+      <table>
+        <thead><tr><th>Термин</th><th>Определение</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Автопарк</strong></td><td>Совокупность транспортных средств и персонала (водителей), находящихся в распоряжении организации для осуществления грузоперевозок.</td></tr>
+          <tr><td><strong>Автомашина</strong></td><td>Транспортное средство с уникальным государственным номером, маркой и определённой грузоподъёмностью.</td></tr>
+          <tr><td><strong>Водитель</strong></td><td>Сотрудник автопарка, ответственный за выполнение заказов. Идентифицируется по табельному номеру.</td></tr>
+          <tr><td><strong>Заказ</strong></td><td>Зафиксированный факт перевозки груза: дата, расстояние, масса груза и стоимость услуги.</td></tr>
+          <tr><td><strong>Диспетчер</strong></td><td>Пользователь с ролью ADMIN. Управляет данными системы, назначает заказы, формирует отчёты.</td></tr>
+          <tr><td><strong>Грузоподъёмность</strong></td><td>Максимально допустимая масса груза для конкретной автомашины за один рейс.</td></tr>
+          <tr><td><strong>Пробег (общий)</strong></td><td>Суммарное расстояние, пройденное автомобилем: начальный пробег плюс сумма дистанций всех заказов.</td></tr>
+          <tr><td><strong>Вознаграждение</strong></td><td>Сумма, начисляемая водителю за выполнение заказа — 20% от общей стоимости перевозки.</td></tr>
+          <tr><td><strong>Табельный номер</strong></td><td>Уникальный цифровой идентификатор водителя в системе учёта кадров автопарка.</td></tr>
+          <tr><td><strong>Ограничение целостности</strong></td><td>Программное правило в базе данных (триггер, CHECK), предотвращающее ввод некорректных данных.</td></tr>
+          <tr><td><strong>SALARY_RECORDS</strong></td><td>Таблица архива начисленных зарплат. Хранит суммарное вознаграждение водителя за указанный период.</td></tr>
+          <tr><td><strong>Роль</strong></td><td>Уровень доступа пользователя в системе. Допустимые значения: <code>ADMIN</code> (диспетчер), <code>DRIVER</code> (водитель).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ FUNCTIONAL REQUIREMENTS ══ -->
+    <div class="page" id="page-functional">
+      <div class="page-header">
+        <div class="page-title">Функциональные требования</div>
+        <div class="page-meta"><span class="tag">Use Case</span><span style="color:var(--text-dim)">Редактор: Bogush Palina</span></div>
+      </div>
+
+      <p>Раздел описывает возможности системы «Автопарк» и сценарии взаимодействия пользователей с ПО.</p>
+
+      <h1>Диаграмма вариантов использования (Use Case)</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Use Case Diagram</div>
+          <div class="diagram-desc">Диаграмма отражает роли пользователей и их права в системе.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Functional-Requirements" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <h2>Описание ролей</h2>
+      <table>
+        <thead><tr><th>Роль</th><th>Описание доступа</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ADMIN (Диспетчер)</strong></td><td>Полный доступ: управление водителями, автомобилями, заказами; формирование сводной статистики и расчёт зарплат.</td></tr>
+          <tr><td><strong>DRIVER (Водитель)</strong></td><td>Ограниченный доступ: просмотр только своих заказов, данных по своей машине и начисленной зарплаты.</td></tr>
+        </tbody>
+      </table>
+
+      <h1>Текстовые сценарии</h1>
+
+      <div class="scenario">
+        <div class="scenario-title">Добавление заказа <span class="scenario-badge">UC-01</span></div>
+        <div class="field"><div class="field-key">Краткое описание</div><div class="field-val">Позволяет диспетчеру зарегистрировать новую перевозку.</div></div>
+        <div class="field"><div class="field-key">Область действия</div><div class="field-val">ИС «Автопарк»</div></div>
+        <div class="field"><div class="field-key">Уровень</div><div class="field-val">Цель пользователя</div></div>
+        <div class="field"><div class="field-key">Предусловия</div><div class="field-val">Диспетчер авторизован; водитель и автомобиль созданы в БД.</div></div>
+        <div class="field"><div class="field-key">Основной поток</div><div class="field-val">
+          1. Диспетчер инициирует добавление заказа через меню.<br>
+          2. Система запрашивает параметры (Дата, ID водителя, № авто, Масса, Стоимость).<br>
+          3. Диспетчер вводит данные.<br>
+          4. Система проверяет наличие объектов в БД.<br>
+          5. Система выполняет проверку грузоподъёмности (include).<br>
+          6. Система подтверждает корректность веса груза.<br>
+          7. Система сохраняет запись и обновляет пробег авто.<br>
+          8. Система уведомляет об успехе.
+        </div></div>
+        <div class="field"><div class="field-key">Альт. потоки</div><div class="field-val"><strong>5А. Перегруз:</strong> Система сообщает, что масса груза превышает грузоподъёмность, и отклоняет сохранение.</div></div>
+        <div class="field"><div class="field-key">Постусловия</div><div class="field-val">Данные о заказе сохранены; водителю начислено 20% от стоимости.</div></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Расчёт зарплаты водителя за период <span class="scenario-badge">UC-02</span></div>
+        <div class="field"><div class="field-key">Краткое описание</div><div class="field-val">Позволяет диспетчеру рассчитать суммарное вознаграждение конкретного водителя за выбранный период.</div></div>
+        <div class="field"><div class="field-key">Предусловия</div><div class="field-val">Диспетчер авторизован; есть выполненные заказы для данного водителя.</div></div>
+        <div class="field"><div class="field-key">Основной поток</div><div class="field-val">
+          1. Диспетчер выбирает функцию «Расчёт ЗП конкретного водителя».<br>
+          2. Система запрашивает фамилию водителя и даты начала/конца периода.<br>
+          3. Система делает выборку всех заказов водителя из таблицы <code>ORDERS</code>.<br>
+          4. Система суммирует стоимость поездок и вычисляет 20%.<br>
+          5. Результат выводится на экран и заносится в <code>SALARY_RECORDS</code>.
+        </div></div>
+        <div class="field"><div class="field-key">Альт. потоки</div><div class="field-val">
+          <strong>4А. Водитель не найден:</strong> Система сообщает об ошибке.<br>
+          <strong>5А. Нет заказов:</strong> Система выводит «Сумма: 0».
+        </div></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Формирование статистики по машине <span class="scenario-badge">UC-03</span></div>
+        <div class="field"><div class="field-key">Краткое описание</div><div class="field-val">Вывод общей массы перевезённых грузов и суммарного пробега для конкретного автомобиля.</div></div>
+        <div class="field"><div class="field-key">Основной поток</div><div class="field-val">
+          1. Диспетчер выбирает «Статистика по машине».<br>
+          2. Система запрашивает государственный номер автомобиля.<br>
+          3. Система суммирует километраж и прибавляет к начальному пробегу.<br>
+          4. Система отображает полные сведения об авто, общий пробег и массу.
+        </div></div>
+        <div class="field"><div class="field-key">Альт. потоки</div><div class="field-val"><strong>4А. Машина не найдена:</strong> «Транспортное средство с таким номером не зарегистрировано».</div></div>
+      </div>
+
+      <div class="scenario">
+        <div class="scenario-title">Просмотр водителем личных данных <span class="scenario-badge">UC-04</span></div>
+        <div class="field"><div class="field-key">Краткое описание</div><div class="field-val">Позволяет водителю получить информацию о своей машине и своих выполненных заказах.</div></div>
+        <div class="field"><div class="field-key">Предусловия</div><div class="field-val">Водитель авторизован в системе под своим табельным номером.</div></div>
+        <div class="field"><div class="field-key">Основной поток</div><div class="field-val">
+          1. Водитель выбирает «Просмотр информации о закреплённой машине».<br>
+          2. Система идентифицирует машину по табельному номеру.<br>
+          3. Водитель вводит период и получает отфильтрованный список заказов.<br>
+          4. Система показывает начисленную зарплату.
+        </div></div>
+        <div class="field"><div class="field-key">Постусловия</div><div class="field-val">Водитель не может просматривать данные других сотрудников.</div></div>
+      </div>
+    </div>
+
+    <!-- ══ SUPPLEMENTARY SPEC ══ -->
+    <div class="page" id="page-supplementary">
+      <div class="page-header">
+        <div class="page-title">Дополнительная спецификация</div>
+        <div class="page-meta"><span class="tag">Нефункциональные требования</span><span style="color:var(--text-dim)">Редактор: Bogush Palina</span></div>
+      </div>
+
+      <p>Документ определяет нефункциональные требования к информационной системе «Автопарк».</p>
+
+      <h1>1. Надёжность (Reliability)</h1>
+      <ul>
+        <li><strong>Целостность данных:</strong> Система обеспечивает корректность связей между таблицами <code>CARS</code>, <code>DRIVERS</code> и <code>ORDERS</code> с использованием <code>FOREIGN KEY</code> и <code>ON UPDATE CASCADE</code>.</li>
+        <li><strong>Валидация при вводе:</strong> Триггеры БД (<code>trg_orders_cargo_mass_ins</code>, <code>trg_orders_cargo_mass_upd</code>) предотвращают сохранение заказов с превышением грузоподъёмности.</li>
+        <li><strong>Отказоустойчивость:</strong> При ошибках в SQL-запросах система выводит информативное сообщение, не завершая работу аварийно.</li>
+      </ul>
+
+      <h1>2. Производительность (Performance)</h1>
+      <ul>
+        <li><strong>Скорость отклика:</strong> Время выполнения расчётных функций не превышает 1–2 секунд на стандартной рабочей станции.</li>
+        <li><strong>Эффективность БД:</strong> Primary Keys в SQLite обеспечивают мгновенный поиск по номеру машины или табельному номеру водителя.</li>
+      </ul>
+
+      <h1>3. Удобство использования (Usability)</h1>
+      <ul>
+        <li><strong>Интерфейс:</strong> Консольное меню (CLI) с чётким разделением прав для ролей ADMIN и DRIVER.</li>
+        <li><strong>Локализация:</strong> Весь интерфейс и системные сообщения на русском языке.</li>
+        <li><strong>Обучаемость:</strong> Не более 10 минут на освоение базовых операций диспетчера.</li>
+      </ul>
+
+      <h1>4. Сопровождаемость (Supportability)</h1>
+      <ul>
+        <li><strong>Модульность:</strong> Структура каталогов <code>bin/</code>, <code>build/</code>, <code>include/</code>, <code>src/</code>; разделение кода на логические модули (<code>db_core</code>, <code>crud</code>, <code>business_logic</code>, <code>reports</code>).</li>
+        <li><strong>Документированность:</strong> Комментарии к ключевым структурам данных (Models) и функциям API.</li>
+        <li><strong>Расширяемость:</strong> Архитектура позволяет добавлять новые типы отчётов без изменения структуры существующих таблиц.</li>
+      </ul>
+    </div>
+
+    <!-- ══ PROJECT SPECIFICATION ══ -->
+    <div class="page" id="page-spec">
+      <div class="page-header">
+        <div class="page-title">Спецификация проекта</div>
+        <div class="page-meta"><span class="tag">UML-диаграммы</span><span style="color:var(--text-dim)">Редактор: Bogush Palina</span></div>
+      </div>
+
+      <p>Техническая спецификация структуры приложения, логики обработки данных и физического развёртывания системы «Автопарк».</p>
+
+      <h1>1. Диаграмма классов (Class Diagram)</h1>
+      <div class="alert alert-info"><p>Приложение реализовано на языке <strong>C</strong>. Диаграмма описывает логическую структуру модулей и ключевых структур данных.</p></div>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Class Diagram</div>
+          <div class="diagram-desc">Модули системы и ключевые структуры данных.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Project-Specification#1-%D0%B4%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%BE%D0%B2-class-diagram" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <h2>Описание модулей</h2>
+      <table>
+        <thead><tr><th>Модуль</th><th>Файлы</th><th>Описание</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Models</strong></td><td><code>models.h</code></td><td>Определения структур данных: <code>Car</code>, <code>Driver</code>, <code>Order</code>, <code>User</code>.</td></tr>
+          <tr><td><strong>DatabaseManager</strong></td><td><code>db_core.h / .c</code></td><td>Инициализация, открытие и закрытие соединения с файлом БД SQLite.</td></tr>
+          <tr><td><strong>Repository</strong></td><td><code>crud.h / .c</code></td><td>Слой доступа к данным — CRUD-операции для всех сущностей и авторизация.</td></tr>
+          <tr><td><strong>BusinessLogic</strong></td><td><code>business_logic.h / .c</code></td><td>Проверка бизнес-правил: грузоподъёмность, расчёт зарплаты.</td></tr>
+          <tr><td><strong>ReportGenerator</strong></td><td><code>reports.h / .c</code></td><td>Формирование статистических отчётов и выборок по водителям и машинам.</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+      <h1>2. Диаграмма деятельности (Activity Diagram)</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 3.21-1.81 6-4.72 7.72L13 17v5h5l-1.22-1.22C19.91 19.07 22 15.76 22 12c0-5.18-3.95-9.45-9-9.95zM11 2.05C5.95 2.55 2 6.82 2 12c0 3.76 2.09 7.07 5.22 8.78L6 22h5v-5l-2.28 2.28C7.81 18 6 15.21 6 12c0-4.08 3.05-7.44 7-7.93V2.05z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Activity Diagram — Добавление нового заказа</div>
+          <div class="diagram-desc">Дорожки (swimlanes): Управление, Бизнес-логика, База данных.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Project-Specification#2-%D0%B4%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D0%B4%D0%B5%D1%8F%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8-activity-diagram" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <hr>
+      <h1>3. Диаграмма последовательности (Sequence Diagram)</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Sequence Diagram — Добавление заказа</div>
+          <div class="diagram-desc">Блок <code>alt</code>: масса груза &gt; capacity — возврат ошибки; иначе — <code>INSERT</code> в БД.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Project-Specification#3-%D0%B4%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8-sequence-diagram" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <hr>
+      <h1>4. Диаграмма компонентов (Component Diagram)</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 3H4v2h16V3zm-2 4H6v2h12V7zM3 11v2h18v-2H3zm3 4v2h12v-2H6zm-3 4v2h18v-2H3z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Component Diagram</div>
+          <div class="diagram-desc">Состав: <code>AutoparkApp</code> (.h + .c файлы), <code>SQLite Library</code> (libsqlite3), <code>Build</code> (CMake, объектные файлы .o, бинарник autopark).</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Project-Specification#4-%D0%B4%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D0%BA%D0%BE%D0%BC%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%BE%D0%B2-component-diagram" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <hr>
+      <h1>5. Диаграмма развёртывания (Deployment Diagram)</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zm-8-6H4V6h16v6h-8z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Deployment Diagram</div>
+          <div class="diagram-desc">Рабочая станция &rarr; процесс <code>autopark</code> &rarr; файл БД <code>autopark.db</code> на локальном диске.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Project-Specification#5-%D0%B4%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0-%D1%80%D0%B0%D0%B7%D0%B2%D0%B5%D1%80%D1%82%D1%8B%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-deployment-diagram" target="_blank">Посмотреть на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DATABASE SCHEMA ══ -->
+    <div class="page" id="page-db">
+      <div class="page-header">
+        <div class="page-title">Схема базы данных</div>
+        <div class="page-meta"><span class="tag">SQLite</span><span style="color:var(--text-dim)">Редактор: Bogush Palina</span></div>
+      </div>
+
+      <p>Архитектура хранения данных информационной системы «Автопарк». База данных реализована на СУБД <strong>SQLite3</strong>.</p>
+
+      <h1>ER-диаграмма</h1>
+      <div class="diagram-box">
+        <div class="diagram-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+        </div>
+        <div class="diagram-body">
+          <div class="diagram-label">Entity-Relationship Diagram</div>
+          <div class="diagram-desc">Визуальная схема таблиц и связей с учётом Primary Keys, Foreign Keys и триггеров.</div>
+          <a href="https://github.com/fpmi-tpmp2026/tpmp-gr11a-lab4-claude/wiki/Database-Schema" target="_blank">Посмотреть ER-диаграмму на GitHub Wiki &rarr;</a>
+        </div>
+      </div>
+
+      <h1>Описание таблиц</h1>
+      <table>
+        <thead><tr><th>Таблица</th><th>Описание</th><th>Ключевые поля</th></tr></thead>
+        <tbody>
+          <tr><td><code>AUTOPARK_CONFIG</code></td><td>Глобальные настройки системы (ключ-значение).</td><td><code>config_key</code> PK</td></tr>
+          <tr><td><code>AUTOPARK_USERS</code></td><td>Учётные записи: логины, хэши паролей, роли ADMIN/DRIVER.</td><td><code>user_id</code> PK, <code>login</code> UNIQUE</td></tr>
+          <tr><td><code>CARS</code></td><td>Список транспортных средств, пробег и грузоподъёмность.</td><td><code>number</code> PK</td></tr>
+          <tr><td><code>DRIVERS</code></td><td>Анкетные данные водителей, стаж и категории прав.</td><td><code>personnel_number</code> PK</td></tr>
+          <tr><td><code>ORDERS</code></td><td>Журнал выполненных рейсов: водитель, машина, груз.</td><td><code>order_id</code> PK, FK на DRIVERS и CARS</td></tr>
+          <tr><td><code>SALARY_RECORDS</code></td><td>Архив начисленных выплат водителям за периоды.</td><td><code>record_id</code> PK, UNIQUE (driver_id, start_date, end_date)</td></tr>
+        </tbody>
+      </table>
+
+      <h1>Ключевые ограничения</h1>
+      <ul>
+        <li>Все связи реализованы через <code>FOREIGN KEY</code> с <code>ON UPDATE CASCADE</code>.</li>
+        <li>Триггер <code>trg_orders_cargo_mass_ins</code> блокирует заказ при превышении грузоподъёмности.</li>
+        <li>Триггер <code>trg_orders_cargo_mass_upd</code> применяется при обновлении заказа.</li>
+        <li>Поле <code>role</code> в <code>AUTOPARK_USERS</code> принимает только <code>ADMIN</code> или <code>DRIVER</code> (CHECK constraint).</li>
+        <li>Поле <code>category</code> в <code>DRIVERS</code>: допустимые значения A, B, C, D, E, CE, DE.</li>
+        <li>Уникальность в <code>SALARY_RECORDS</code> по (driver_id, start_date, end_date) — исключает дубли при пересчёте.</li>
+      </ul>
+
+      <h1>SQL-скрипт</h1>
+      <p>Полный исходный код создания структуры БД:</p>
+      <div class="alert alert-success"><p><a href="https://github.com/user-attachments/files/26274867/autopark_create.sql" target="_blank">Скачать autopark_create.sql</a></p></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  const pageNames = {
+    home:          'Home',
+    glossary:      'Глоссарий',
+    functional:    'Функциональные требования',
+    supplementary: 'Дополнительная спецификация',
+    spec:          'Спецификация проекта',
+    db:            'Схема базы данных'
+  };
+
+  function navigate(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const page = document.getElementById('page-' + id);
+    if (page) page.classList.add('active');
+    if (el) {
+      el.classList.add('active');
+    } else {
+      document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.dataset && n.dataset.page === id) n.classList.add('active');
+      });
+    }
+    document.getElementById('breadcrumb-current').textContent = pageNames[id] || id;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  async function loadCoverage() {
+    try {
+      const r = await fetch('coverage/coverage-summary.json');
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      const t = data.total;
+
+      function setBar(id, fillId, pct) {
+        const el = document.getElementById(id);
+        const fill = document.getElementById(fillId);
+        if (el) el.textContent = (pct != null ? pct.toFixed(1) + '%' : '—');
+        if (fill) fill.style.width = (pct != null ? Math.min(pct, 100) : 0) + '%';
+      }
+
+      setBar('cov-lines-pct',    'cov-lines-fill',    t.lines?.pct);
+      setBar('cov-funcs-pct',    'cov-funcs-fill',    t.functions?.pct);
+      setBar('cov-branches-pct', 'cov-branches-fill', t.branches?.pct);
+    } catch {
+      ['cov-lines-pct','cov-funcs-pct','cov-branches-pct'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = 'Отчёт';
+      });
+      ['cov-lines-fill','cov-funcs-fill','cov-branches-fill'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.width = '100%';
+      });
+    }
+  }
+
+  loadCoverage();
+</script>
+</body>
+</html>
