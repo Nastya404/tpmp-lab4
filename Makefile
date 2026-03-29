@@ -11,13 +11,13 @@ TARGET = $(BIN_DIR)/autopark
 
 ALL_SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-# --- ОС-зависимая логика ---
+# ОС-зависимая логика 
 ifeq ($(OS),Windows_NT)
-    # 👉 Windows: используем sqlite3.c
+    # Windows: используем sqlite3.c
     SRCS = $(ALL_SRCS)
     SQLITE_OBJ = $(OBJ_DIR)/sqlite3.o
 else
-    # 👉 Linux: исключаем sqlite3.c
+    # Linux: исключаем sqlite3.c
     SRCS = $(filter-out $(SRC_DIR)/sqlite3.c, $(ALL_SRCS))
     LDFLAGS += -lsqlite3
 endif
@@ -27,7 +27,7 @@ OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 # Флаги только для sqlite3.c
 SQLITE_CFLAGS = -Iinclude -Wno-unused-but-set-variable -Wno-unused-parameter
 
-# --- команды ---
+#  команды 
 ifeq ($(OS),Windows_NT)
 	MKDIR_BIN = if not exist "$(BIN_DIR)" mkdir "$(BIN_DIR)"
 	MKDIR_OBJ = if not exist "$(OBJ_DIR)" mkdir "$(OBJ_DIR)"
@@ -42,14 +42,14 @@ else
 	RUN_CMD = ./bin/autopark
 endif
 
-# --- сборка ---
+# сборка 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@$(MKDIR_BIN)
 	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# 👉 Только для Windows реально используется
+# Только для Windows
 $(OBJ_DIR)/sqlite3.o: $(SRC_DIR)/sqlite3.c
 	@$(MKDIR_OBJ)
 	$(CC) $(SQLITE_CFLAGS) -c $< -o $@
