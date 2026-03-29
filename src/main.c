@@ -87,7 +87,10 @@ int main() {
                 printf("Стаж: "); scanf("%d", &d.experience); clear_buffer();
                 printf("Адрес: "); scanf("%200[^\n]", d.address); clear_buffer();
                 printf("Год рождения: "); scanf("%d", &d.birth_year); clear_buffer();
-                add_driver(db, d);
+                if (add_driver(db, d) == 0)
+                    printf("Водитель добавлен успешно.\n");
+                else
+                    printf("Ошибка: проверьте правильность данных (категория: A/B/C/D/E/CE/DE, год рождения: 1956-2008).\n");
                 break;
             }
             case 2: {

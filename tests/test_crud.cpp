@@ -1,4 +1,4 @@
-#include <gtest/gtest.h>
+9#include <gtest/gtest.h>
 #include <cstring>  // для strcpy
 
 extern "C" {
